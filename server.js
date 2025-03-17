@@ -44,6 +44,47 @@ app.get('/api/notes', async (req, res) => {
   }
 });
 
+// ➡️ Update Note by ID
+app.put('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+
+  try {
+    const updatedNote = await Note.findByIdAndUpdate(
+      id,
+      { title, content },
+      { new: true } // This returns the updated note
+    );
+    
+    if (!updatedNote) {
+      return res.status(404).json({ message: 'Note not found' });
+    }
+
+    res.json(updatedNote);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update note', error: err });
+  }
+});
+
+// ➡️ Delete Note by ID
+app.delete('/api/notes/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedNote = await Note.findByIdAndDelete(id);
+    
+    if (!deletedNote) {
+      return res.status(404).json({ message: 'Note not found' });
+    }
+
+    res.json({ message: 'Note deleted successfully', deletedNote });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete note', error: err });
+  }
+});
+
+
+
 app.listen(port, () => {
   console.log(`✅ Server running at http://localhost:${port}`);
 });
