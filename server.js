@@ -27,7 +27,11 @@ mongoose.connect(process.env.MONGODB_URI)
 app.post('/api/register', async (req, res) => {
   const { username, email, password } = req.body;
   try {
-    const user = new User({ username, email, password });
+    // Hash password before saving user
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = new User({ username, email, password: hashedPassword });
     await user.save();
     res.status(201).send({ message: 'User registered successfully' });
   } catch (err) {
@@ -42,7 +46,7 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).send({ message: 'User not found' });
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).send({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
