@@ -12,13 +12,18 @@ app.use(cors());
 
 const port = process.env.PORT || 5000;
 
-// ✅ Connect to MongoDB
+// Root route for basic test
+app.get('/', (req, res) => {
+  res.send('Welcome to the Notes App!');
+});
+
+// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Create Note
-app.post('/notes', async (req, res) => {
+// ➡️ Create Note
+app.post('/api/notes', async (req, res) => {
   const { title, content } = req.body;
   try {
     const newNote = new Note({ title, content });
@@ -29,8 +34,8 @@ app.post('/notes', async (req, res) => {
   }
 });
 
-// Get Notes
-app.get('/notes', async (req, res) => {
+// ➡️ Get Notes
+app.get('/api/notes', async (req, res) => {
   try {
     const notes = await Note.find();
     res.json(notes);
