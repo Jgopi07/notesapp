@@ -46,12 +46,13 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).send({ message: 'User not found' });
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(400).send({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(200).send({ message: 'Login successful', token });
   } catch (err) {
+    console.log(err); // Log the error to get more details
     res.status(400).send({ message: 'Error logging in', error: err });
   }
 });
