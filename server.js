@@ -4,8 +4,8 @@ const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
-const User = require('./models/userModel'); // Import User model
-const Note = require('./models/noteModel'); // Import Note model
+const User = require('./models/userModel');
+const Note = require('./models/noteModel');
 
 dotenv.config();
 
@@ -74,12 +74,13 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// ✅ Create Note (Protected)
+// ✅ Create Note (Protected) – Link to logged-in user
 app.post('/api/notes', authMiddleware, async (req, res) => {
   const { title, content } = req.body;
+  const userId = req.user.userId;
 
   try {
-    const newNote = new Note({ title, content });
+    const newNote = new Note({ title, content, userId });
     await newNote.save();
     res.status(201).json(newNote);
   } catch (err) {
@@ -87,30 +88,33 @@ app.post('/api/notes', authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Get Notes (Protected)
+// ✅ Get Notes (Protected) – Only return notes belonging to logged-in user
 app.get('/api/notes', authMiddleware, async (req, res) => {
+  const userId = req.user.userId;
+
   try {
-    const notes = await Note.find();
+    const notes = await Note.find({ userId });
     res.json(notes);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch notes', error: err.message });
   }
 });
 
-// ✅ Update Note by ID (Protected)
+// ✅ Update Note by ID (Protected) – Only update user's note
 app.put('/api/notes/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   const { title, content } = req.body;
+  const userId = req.user.userId;
 
   try {
-    const updatedNote = await Note.findByIdAndUpdate(
-      id,
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: id, userId }, // Ensure note belongs to logged-in user
       { title, content },
       { new: true }
     );
 
     if (!updatedNote) {
-      return res.status(404).json({ message: 'Note not found' });
+      return res.status(404).json({ message: 'Note not found or not authorized' });
     }
 
     res.json(updatedNote);
@@ -119,15 +123,16 @@ app.put('/api/notes/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Delete Note by ID (Protected)
+// ✅ Delete Note by ID (Protected) – Only delete user's note
 app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
+  const userId = req.user.userId;
 
   try {
-    const deletedNote = await Note.findByIdAndDelete(id);
+    const deletedNote = await Note.findOneAndDelete({ _id: id, userId });
 
     if (!deletedNote) {
-      return res.status(404).json({ message: 'Note not found' });
+      return res.status(404).json({ message: 'Note not found or not authorized' });
     }
 
     res.json({ message: 'Note deleted successfully', deletedNote });
@@ -136,6 +141,7 @@ app.delete('/api/notes/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// ✅ Start Server
 app.listen(port, () => {
   console.log(`✅ Server running at http://localhost:${port}`);
 });
