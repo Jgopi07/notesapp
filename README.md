@@ -82,8 +82,11 @@ npm run deploy
 
 Gopi
 GitHub: https://github.com/Jgopi07
-
 LinkedIn: https://www.linkedin.com/in/gopi-jangili-3123302bb/
+
+OUTPUT:
+<img width="1919" height="980" alt="image" src="https://github.com/user-attachments/assets/3c19a65a-e88a-4ce0-a9e5-5c974266a324" />
+
 
 ⭐ If you like this project, give it a star!
 
